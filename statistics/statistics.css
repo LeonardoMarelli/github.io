@@ -1,0 +1,235 @@
+/* =========================
+   Statistics — shared style
+   ========================= */
+
+:root {
+    color-scheme: light;
+    --bg: #f5f9fc;
+    --paper: #ffffff;
+    --ink: #202b33;
+    --muted: #7b8a95;
+    --line: #dce6ed;
+    --accent: #547f98;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Courier New", monospace;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* Main layout */
+
+main {
+    width: min(100% - 40px, 820px);
+    margin: 0 auto;
+    padding: 64px 0 40px;
+}
+
+/* Headings */
+
+h1, h2, h3 {
+    font-weight: normal;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    letter-spacing: -2px;
+    margin: 0 0 12px;
+}
+
+h2 {
+    font-size: 1.25rem;
+    margin: 40px 0 16px;
+}
+
+h3 {
+    font-size: 1rem;
+    margin: 24px 0 8px;
+}
+
+p {
+    margin: 0 0 16px;
+}
+
+.description {
+    color: var(--muted);
+    max-width: 600px;
+}
+
+/* Links */
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    text-underline-offset: 4px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Small navigation / breadcrumb */
+
+.breadcrumb {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 32px;
+}
+
+.breadcrumb a {
+    color: var(--muted);
+}
+
+/* Homework list */
+
+.homework-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    border-top: 1px solid var(--line);
+}
+
+.homework-list li {
+    border-bottom: 1px solid var(--line);
+}
+
+.homework-list a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 4px;
+    color: var(--ink);
+    transition: padding-left 0.15s ease;
+}
+
+.homework-list a:hover {
+    padding-left: 10px;
+    text-decoration: none;
+}
+
+.homework-number,
+.meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+/* General content sections */
+
+section {
+    margin: 32px 0;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 32px 0;
+}
+
+/* Code */
+
+code,
+pre {
+    font-family: "Courier New", monospace;
+    font-size: 0.9rem;
+}
+
+code {
+    background: var(--paper);
+    padding: 2px 5px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+}
+
+pre {
+    overflow-x: auto;
+    padding: 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    line-height: 1.5;
+}
+
+pre code {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+/* Results, tables and figures */
+
+.output,
+.card {
+    padding: 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.9rem;
+}
+
+th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+}
+
+th {
+    font-weight: normal;
+    color: var(--muted);
+}
+
+img, svg, canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Footer */
+
+footer {
+    margin-top: 64px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    main {
+        width: calc(100% - 32px);
+        padding-top: 40px;
+    }
+
+    h1 {
+        letter-spacing: -1px;
+    }
+
+    .homework-list a {
+        gap: 12px;
+    }
+
+    pre {
+        padding: 12px;
+    }
+}

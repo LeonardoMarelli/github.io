@@ -3,43 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistica — ~/</title>
+    <meta name="theme-color" content="#f5f9fc">
+    <title>Statistica — Homework</title>
     <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-    <header class="site-header">
-        <a class="wordmark" href="../" aria-label="Torna alla home">~<span class="wordmark-slash">/</span></a>
-        <span class="header-note">Indice personale &nbsp;·&nbsp; Statistica</span>
-    </header>
-
     <main>
-        <section class="hero" aria-labelledby="page-title">
-            <div>
-                <p class="eyebrow"><a href="../">← Torna all'indice</a> / 01</p>
-                <h1 id="page-title">Statistica,<br><em>esercizi in corso.</em></h1>
-            </div>
-            <p class="hero-note">Appunti e homework del corso. Ogni esercizio troverà qui il suo piccolo spazio.</p>
+        <!-- Pulsante per tornare alla Home e Titolo essenziale -->
+        <section class="hero hero--home" aria-labelledby="page-title">
+            <p class="eyebrow"><a href="../index.html">← Home</a></p>
+            <h1 id="page-title">Statistics <em>homeworks.</em></h1>
         </section>
 
-        <section class="directory" aria-labelledby="directory-title">
-            <div class="section-heading">
-                <h2 id="directory-title">Homework</h2>
-                <span>In aggiornamento</span>
-            </div>
-            <div class="entry-card entry-card--soon">
-                <span class="entry-id">—</span>
-                <div class="entry-info">
-                    <h3 class="entry-title">Nessun esercizio pubblicato</h3>
-                    <p class="entry-description">Gli homework compariranno qui quando saranno pronti.</p>
-                </div>
-                <span class="entry-state">Presto</span>
-            </div>
+        <!-- Lista degli Homework --> 
+         <section class="directory" aria-labelledby="homework-title">
+            <div class="section-heading"> 
+                <h2 id="homework-title">Homeworks</h2> 
+                <span class="section-meta">Assignments</span> 
+            </div> <!-- Homework 1 --> 
+
+            <a href="hw1/index.html" class="entry-card"> 
+                <span class="entry-id">01</span> 
+                <div class="entry-info"> 
+                    <h3 class="entry-title">Homework 01</h3> 
+                    <p class="entry-description"> First homework assignment. </p> 
+                </div> 
+                <span class="entry-state">View →</span> 
+            </a> <!-- Homework 2 --> 
+            <a href="hw2/index.html" class="entry-card"> 
+                <span class="entry-id">02</span> 
+                <div class="entry-info"> 
+                    <h3 class="entry-title">Homework 02</h3> 
+                    <p class="entry-description"> Second homework assignment. </p> 
+                </div> 
+                <span class="entry-state">View →</span> 
+            </a>
         </section>
     </main>
-
-    <footer class="site-footer">
-        <span class="footer-status"><span class="footer-dot" aria-hidden="true"></span>In costruzione</span>
-        <span>MMXXVI</span>
-    </footer>
 </body>
 </html>
