@@ -3,169 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HMWK 1 - Public-Key Cryptography</title>
+    <title>HMWK 1 — Public-Key Cryptography</title>
     <link rel="stylesheet" href="../statistics.css">
 </head>
 <body>
 <main>
+    <div class="breadcrumb"><a href="../index.html">Statistics</a> / Homework 1</div>
 
-    <div class="breadcrumb"><a href="#">Statistics</a> / Homework 1</div>
-
-    <h1>Public-Key Generation on a Toy Elliptic Curve (Scalar Multiplication as a One-Way Function)</h1>
+    <h1>Public-Key Generation on a Toy Elliptic Curve</h1>
     <p class="description">
-        From a private key to a public key with elliptic-curve scalar multiplication,
-        on a small toy curve, followed by a simple statistical look at the output.
+        Exploration of elliptic-curve scalar multiplication, using a small toy curve
+        to understand the basic idea behind elliptic-curve public-key cryptography.
     </p>
 
     <section>
-        <h2>1. Background</h2>
+        <h2>1. What is the goal?</h2>
         <p>
-            Elliptic-curve scalar multiplication is a one-way function. Given a private key
-            <code>k</code> and a base point <code>G</code>, the public key <code>Q = kG</code>
-            is easy to compute by repeated point addition (or by double-and-add). Recovering
-            <code>k</code> from <code>Q</code> is the Elliptic Curve Discrete Logarithm Problem (ECDLP),
-            which is believed to be computationally hard on a real curve.
+            Public-key cryptography uses a mathematically related pair of keys. The <strong>private key</strong>
+            is secret, while the <strong>public key</strong> can be shared openly. In elliptic-curve
+            cryptography, the public key is obtained by multiplying a public base point by the private scalar:
         </p>
-        <p>
-            The function is deterministic and efficient in the forward direction, so it shares some
-            features with cryptographic hash functions. It is, however, used for public-key cryptography
-            and digital signatures, not for hashing. The goal here is to understand the mechanics of
-            scalar multiplication, not to build a secure system.
-        </p>
-    </section>
-
-    <section>
-        <h2>2. Task</h2>
-        <p>
-            Write a small program that takes a private key and produces the corresponding public key
-            using elliptic-curve scalar multiplication on the toy curve
-            <code>y² = x³ + 7 (mod 17)</code>, with base point <code>G = (1, 5)</code> and private key
-            <code>k = 6</code>. The program prints <code>G, 2G, 3G, ..., kG</code>, and the final point
-            is reported as the toy public key. It then repeats the experiment for other scalars and
-            base points and looks at simple statistical properties of the outputs.
-        </p>
-    </section>
-
-    <section>
-        <h2>3. Implementation</h2>
-        <p>The code is in <code>hw1.js</code>. Its main parts are:</p>
+        <p><strong><code>Q = kG</code></strong></p>
         <ul>
-            <li><code>modInv</code>: modular inverse through the extended Euclidean algorithm.</li>
-            <li><code>pointAdd</code>: point addition, with doubling when the two points are equal and
-                the point at infinity <code>O</code> when the points are opposite.</li>
-            <li><code>scalarMult</code>: computes <code>kP</code> with double-and-add, so large
-                <code>k</code> needs only about log<sub>2</sub>(k) doublings.</li>
-            <li><code>allPoints</code>: enumerates every point of the curve, which lets us compute the
-                order of each point.</li>
-            <li><code>avalanche</code> and the other helpers: the statistical tests shown below.</li>
+            <li><code>k</code> is the private key, represented as an integer.</li>
+            <li><code>G</code> is a publicly known base point on the curve.</li>
+            <li><code>Q</code> is the public key, also a point on the curve.</li>
         </ul>
         <p>
-            Each curve is treated in the same way: the program prints the multiples of the base point,
-            the toy public key, a cross-check against plain repeated addition, and the statistics.
-            To try another curve or base point, edit the <code>CURVES</code> array at the top of
-            <code>hw1.js</code>.
+            Here, “multiplication” does not mean multiplying the point's coordinates by <code>k</code>.
+            It means adding the point to itself repeatedly according to the elliptic-curve group law.
+            For example, <code>3G = G + G + G</code>.
+        </p>
+        <p>
+            The exercise uses <code>k = 6</code>. That is an integer written with one decimal digit, but its
+            binary representation is <code>110</code>, so its minimal binary length is <strong>3 bits</strong>.
+            This tiny value is chosen only to make the calculations easy to follow. In Ethereum, a valid
+            secp256k1 private key is an integer in the range <code>1 ≤ k &lt; n</code>, normally represented
+            using 32 bytes (256 bits).
         </p>
     </section>
 
     <section>
-        <h2>4. Interactive tool</h2>
+        <h2>2. The toy elliptic curve</h2>
         <p>
-            Choose a private key <code>k</code> and a base point <code>G</code> on the curve
-            <code>y² = x³ + 7 (mod 17)</code>. The table shows each step of <code>kG</code>,
-            with the slope <code>λ</code> used for every addition, and the grid shows where
-            the points lie on the curve.
+            The main example uses the curve
+            <code>y² = x³ + 7 (mod 17)</code>, with base point <code>G = (1, 5)</code>.
+            Calculations are performed modulo 17, so coordinate values are represented by integers from 0 to 16.
+        </p>
+        <p>
+            “Modulo 17” means that results are reduced to their remainder modulo 17. For example,
+            <code>20 mod 17 = 3</code> and <code>−3 mod 17 = 14</code>.
+            A pair <code>(x, y)</code> is a point on the curve only if it satisfies the curve equation.
+        </p>
+        <p>
+            We can check the chosen base point directly. For <code>G = (1, 5)</code>, the left-hand side is
+            <code>5² = 25 ≡ 8 (mod 17)</code>, while the right-hand side is
+            <code>1³ + 7 = 8</code>. The values agree, so <code>G</code> is on the curve.
+        </p>
+        <p>
+            The small modulus is for teaching purposes: it lets the program enumerate all the points and makes
+            every operation inspectable. It is <strong>not cryptographically secure</strong>. The real-number
+            curve drawing in the interactive section is only an illustration; the actual calculations use
+            the discrete set of points modulo 17.
+        </p>
+    </section>
+
+    <section>
+        <h2>3. How point addition works</h2>
+        <p>
+            Elliptic-curve points have a special addition rule. Given two distinct points
+            <code>P = (x₁, y₁)</code> and <code>R = (x₂, y₂)</code>, first compute the slope
+            using modular arithmetic:
+        </p>
+        <p><code>λ = (y₂ − y₁) / (x₂ − x₁) (mod p)</code></p>
+        <p>
+            Division modulo <code>p</code> means multiplying by the denominator's modular inverse.
+            The resulting point <code>S = P + R = (x₃, y₃)</code> is then calculated as:
+        </p>
+        <p><code>x₃ = λ² − x₁ − x₂ (mod p)</code></p>
+        <p><code>y₃ = λ(x₁ − x₃) − y₁ (mod p)</code></p>
+        <p>
+            When the two points are equal, the operation uses the tangent slope instead. The implementation
+            also handles opposite points, whose sum is the point at infinity <code>O</code>. This point acts
+            as the identity element: <code>P + O = P</code>.
+        </p>
+
+        <h3>Worked example: computing 2G</h3>
+        <p>
+            Start with <code>G = (1, 5)</code>. To compute <code>2G</code>, add <code>G</code> to itself.
+            Since this is point doubling, the slope is
+            <code>λ = (3x₁² + a)/(2y₁) (mod 17)</code>, where <code>a = 0</code>.
+            Thus <code>λ = 3 × 10⁻¹ (mod 17)</code>. The modular inverse of 10 is 12 because
+            <code>10 × 12 = 120 ≡ 1 (mod 17)</code>. Therefore <code>λ = 3 × 12 ≡ 2 (mod 17)</code>.
+        </p>
+        <p>
+            The new coordinates are <code>x₃ = 2² − 1 − 1 = 2</code> and
+            <code>y₃ = 2(1 − 2) − 5 = −7 ≡ 10 (mod 17)</code>. Hence:
+        </p>
+        <p><strong><code>2G = (2, 10)</code></strong></p>
+    </section>
+
+    <section>
+        <h2>4. From the private key to the public key</h2>
+        <p>
+            The private scalar is <code>k = 6</code>. Scalar multiplication gives
+            <code>Q = 6G</code>, which can be found by adding <code>G</code> six times. The first multiples
+            for this example are:
+        </p>
+        <table>
+            <thead>
+                <tr><th>Multiple</th><th>Point</th><th>Calculation</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>G</code></td><td><code>(1, 5)</code></td><td>The chosen base point</td></tr>
+                <tr><td><code>2G</code></td><td><code>(2, 10)</code></td><td><code>G + G</code></td></tr>
+                <tr><td><code>3G</code></td><td><code>(5, 9)</code></td><td><code>2G + G</code></td></tr>
+                <tr><td><code>4G</code></td><td><code>(12, 1)</code></td><td><code>3G + G</code></td></tr>
+                <tr><td><code>5G</code></td><td><code>(12, 16)</code></td><td><code>4G + G</code></td></tr>
+                <tr><td><code>6G</code></td><td><code>(5, 8)</code></td><td><code>5G + G</code></td></tr>
+            </tbody>
+        </table>
+        <p>
+            The public key for the required example is therefore:
+        </p>
+        <p><strong><code>Q = 6G = (5, 8)</code></strong></p>
+        <p>
+            The program also computes the result using <em>double-and-add</em>. This method uses the binary
+            representation of the scalar to combine point doublings and additions, reducing the number of
+            group operations needed for large scalars. A check compares this result with the result obtained
+            by repeated addition.
+        </p>
+    </section>
+
+    <section>
+        <h2>5. Why is the operation useful in cryptography?</h2>
+        <p>
+            The forward calculation, <code>Q = kG</code>, is efficient. The reverse problem—recovering
+            <code>k</code> when <code>G</code> and <code>Q</code> are known—is called the
+            <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong>. On a properly chosen real curve,
+            solving this problem is believed to be computationally infeasible with classical computers at
+            current security levels.
+        </p>
+        <p>
+            This is the asymmetry that makes elliptic-curve public-key cryptography useful: computing the public
+            key from the private key is practical, while recovering the private key from the public key should
+            be infeasible. However, the toy curve cannot demonstrate this hardness. For the selected point,
+            the order is only 9, meaning <code>9G = O</code> and the multiples repeat every nine steps. A few
+            additions are enough to recover the scalar in this example.
+        </p>
+        <p>
+            The scalar is effectively considered modulo the order of the base point. On this toy subgroup,
+            <code>6G = 15G</code> because <code>15 mod 9 = 6</code>. Real systems restrict private scalars to
+            the appropriate valid range and use a group of enormous order.
+        </p>
+    </section>
+
+    <section>
+        <h2>6. Interactive explorer</h2>
+        <p>
+            Change the private scalar or select another valid point on the toy curve. The table shows each
+            addition step, including the slope used when applicable. The grid marks the points of the curve
+            and the subgroup generated by the selected base point.
         </p>
         <div id="interactive"></div>
     </section>
 
     <section>
-        <h2>5. Results</h2>
+        <h2>7. Statistical exploration</h2>
+        <p>
+            The program repeats the calculation for many scalar values and reports several descriptive
+            statistics. These tests help explore the behaviour of the outputs; they do not by themselves prove
+            cryptographic security.
+        </p>
+        <h3>Coordinate distributions and frequencies</h3>
+        <p>
+            The program counts how often each coordinate value appears, how many distinct <code>x</code> and
+            <code>y</code> values occur, and the mean coordinate values. The coordinates cannot be arbitrary
+            pairs: every output must be a valid point on the curve. Over one complete cycle, every non-identity
+            point in the subgroup generated by <code>G</code> appears exactly once, by construction.
+        </p>
+        <h3>Bit balance</h3>
+        <p>
+            Each coordinate is represented in binary, and the program measures the fraction of 1s at each bit
+            position. This describes the observed sample, but a balanced bit count does not establish that the
+            output is random or that the underlying operation is secure.
+        </p>
+        <h3>Correlation</h3>
+        <p>
+            Pearson correlations between <code>k</code> and the coordinates measure only linear association.
+            A coefficient near zero does not mean that no relationship exists. Scalar multiplication has a
+            clear algebraic structure: <code>(k + ℓ)G = kG + ℓG</code> and
+            <code>(k + 1)G = kG + G</code>. Simple correlation tests do not capture all such structure.
+        </p>
+        <h3>Avalanche-like behaviour</h3>
+        <p>
+            The program flips one input bit at a time and counts how many bits change in the encoded output
+            coordinates. Many cryptographic hash functions aim for a strong avalanche effect: changing one
+            input bit should change about half of the output bits on average. Elliptic-curve scalar multiplication
+            does not have this requirement, and its group structure does not guarantee a 50% change. Results
+            on a tiny, periodic subgroup are particularly limited and must not be interpreted as a security test.
+        </p>
         <div id="results"></div>
     </section>
 
     <section>
-        <h2>6. Discussion</h2>
-
-        <h3>Properties of a one-way function</h3>
+        <h2>8. Scalar multiplication versus cryptographic hash functions</h2>
         <p>
-            <strong>Deterministic, efficient forward computation.</strong> Computing <code>Q = kG</code>
-            takes a number of group operations proportional to the number of bits of <code>k</code>.
-            This is the easy direction, and the program demonstrates it directly.
+            Both scalar multiplication and cryptographic hash functions are deterministic and efficient to
+            compute, but they serve different purposes. A one-way function is intended to be easy to evaluate
+            and hard to invert. For elliptic-curve scalar multiplication, the relevant hardness assumption is
+            the ECDLP. Statistics such as bit balance and apparent uniformity are not defining requirements
+            of one-wayness and cannot demonstrate it.
         </p>
         <p>
-            <strong>Hardness of inversion.</strong> This is the property that makes the function one-way,
-            and it cannot be seen in these experiments. The subgroup generated by <code>G</code> has
-            order <code>n</code>, so brute force needs at most <code>n</code> steps. On the toy curve
-            <code>n</code> is tiny, so the discrete logarithm can be found instantly. For secp256k1 the
-            group order is about 2<sup>256</sup>, which makes brute force infeasible.
+            A general-purpose cryptographic hash function accepts messages of arbitrary length and produces a
+            fixed-length digest. It is designed to provide properties such as preimage resistance and, where
+            required, collision resistance. Hash designs also aim to avoid simple exploitable algebraic structure.
+            Scalar multiplication instead maps a scalar to a point in a group and deliberately follows the
+            group's algebraic rules. An avalanche-like output pattern is desirable in many hash designs, but it
+            is not a requirement for public-key scalar multiplication.
         </p>
         <p>
-            <strong>Output distribution.</strong> A good one-way function should produce outputs that look
-            spread out and unpredictable, so coverage, frequencies and bit balance are sensible checks.
-            They are weak indicators, though. Over a full period each point of the subgroup appears exactly
-            once, so the output is perfectly "uniform" over that subgroup by construction, and this says
-            nothing about hardness. Moreover, the output must satisfy the curve equation, so not every pair
-            <code>(x, y)</code> is possible and many <code>x</code> values have no point at all.
-        </p>
-        <p>
-            <strong>Correlation between input and output.</strong> The Pearson coefficients between
-            <code>k</code> and the coordinates are typically close to zero, but this is misleading.
-            The map is algebraic: <code>(k + l)G = kG + lG</code>, and <code>(k + n)G = kG</code>.
-            Linear structure is invisible to simple correlation tests, yet it is a serious weakness for a
-            cryptographic function. The same holds for the serial correlations between consecutive outputs,
-            which reflect the fact that <code>(k + 1)G = kG + G</code>.
-        </p>
-        <p>
-            <strong>Avalanche.</strong> Flipping one bit of <code>k</code> changes the scalar by
-            <code>±2<sup>i</sup></code>, and the change in the output is dictated by group arithmetic. Nothing
-            forces the output to change in about half of its bits. Scalars that differ by a multiple of
-            <code>n</code> give the same point, so on a small curve the periodicity lowers the average
-            change. Compare the value in the output with the ideal 50% of a hash function.
-        </p>
-
-        <h3>Properties specific to hash functions</h3>
-        <p>
-            Hash functions are designed to have properties that scalar multiplication does not provide:
-        </p>
-        <ul>
-            <li><strong>Fixed-size output for inputs of any length.</strong> Scalar multiplication has a
-                fixed input domain (scalars modulo <code>n</code>) and no notion of arbitrary-length messages.</li>
-            <li><strong>Strong avalanche.</strong> A one-bit change in the input should flip about half of
-                the output bits. Here the change is determined by group structure, as noted above.</li>
-            <li><strong>Collision resistance.</strong> Any hash function must have collisions by the pigeonhole
-                principle, but they must be hard to find. Scalar multiplication is injective on the
-                scalars <code>1 .. n-1</code>, so distinct scalars never collide there. The security relies on
-                the discrete logarithm, not on the absence of collisions.</li>
-            <li><strong>No algebraic structure.</strong> Hash functions are built to avoid linear relations
-                such as <code>h(a + b) = h(a) + h(b)</code>. The group law of the curve is exactly such a structure.</li>
-        </ul>
-
-        <h3>Summary</h3>
-        <p>
-            For a one-way function, the meaningful properties are determinism, efficiency of the forward
-            direction, and hardness of inversion. The last one cannot be tested on a toy curve. The
-            statistical properties (distribution, bit balance) are only weak evidence on their own, and
-            the algebraic structure makes some of them misleading. The properties specific to hash functions,
-            such as strong avalanche and arbitrary-length input, are not expected from scalar multiplication.
-        </p>
-
-        <h3>Connection to Ethereum</h3>
-        <p>
-            In Ethereum, the private key is a 256-bit integer, and the public key is the point
-            <code>(x, y)</code> on secp256k1. The address is then derived by applying the Keccak-256 hash to the
-            public key and keeping the last 20 bytes. The hash-like properties therefore come from Keccak,
-            applied after the elliptic-curve step, and not from the scalar multiplication itself.
-        </p>
-
-        <p>
-            <em>Note:</em> these routines are for teaching only. They are not constant-time and must not be
-            used to generate real keys.
+            The main lesson from the statistical section is therefore not that the output “looks random”, but
+            that statistical observations and cryptographic security are different questions. Security depends
+            on the mathematical problem and the parameters, not merely on the appearance of sampled outputs.
         </p>
     </section>
 
-    <footer>HMWK 1 - Statistics</footer>
-</main>
+    <section>
+        <h2>9. Connection to Ethereum</h2>
+        <p>
+            Ethereum uses the <code>secp256k1</code> curve for conventional externally owned account keys.
+            The core public-key step follows the same idea as this exercise: a private scalar <code>k</code>
+            is used to compute the public point <code>Q = kG</code>. The curve parameters and key space are
+            vastly larger than those in the toy example.
+        </p>
+        <p>
+            An Ethereum address is then derived separately: Keccak-256 is applied to the 64-byte concatenation
+            of the public key's <code>x</code> and <code>y</code> coordinates (without the uncompressed-key
+            <code>0x04</code> prefix), and the last 20 bytes of the hash are used as the address. Therefore,
+            the hash-related properties come from Keccak-256, not from elliptic-curve scalar multiplication.
+        </p>
+        <p>
+            <strong>Important:</strong> this program is a teaching demonstration only. It does not implement
+            secp256k1, Ethereum key generation, or production cryptography, and it must never be used to generate
+            real keys.
+        </p>
+    </section>
 
+    <section>
+        <h2>10. Conclusion</h2>
+        <p>
+            This homework implements the mathematical path from a private scalar to a public point, checks the
+            result using two multiplication methods, and explores the outputs through simple statistics. The
+            toy curve makes the calculations visible, but its tiny subgroup also makes the reverse problem
+            trivial. The essential cryptographic idea is that real elliptic-curve systems use carefully chosen
+            parameters so that public-key computation is efficient while recovering the private scalar remains
+            computationally infeasible. Statistical tests can illustrate behaviour, but they cannot replace a
+            cryptographic security argument.
+        </p>
+        <p>
+            <strong>Reference:</strong>
+            <a href="https://ethereum.org/developers/docs/accounts/" target="_blank" rel="noopener noreferrer">Ethereum account documentation</a>
+            ·
+            <a href="https://ethereum.github.io/yellowpaper/paper.pdf" target="_blank" rel="noopener noreferrer">Ethereum Yellow Paper</a>
+        </p>
+    </section>
+
+    <footer>HMWK 1 — Statistics</footer>
+</main>
 <script src="hw1.js" defer></script>
 </body>
 </html>
