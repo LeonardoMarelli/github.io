@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMWK 2 - From Wallet Seed to Ethereum Address</title>
+    <link rel="stylesheet" href="statistics.css">
+</head>
+<body>
+<main>
+
+    <div class="breadcrumb"><a href="#">Statistics</a> / Homework 2</div>
+
+    <h1>From Wallet Seed to Ethereum Address</h1>
+    <p class="description">
+        Hashing, key derivation and cryptographic primitives, followed step by step through
+        the pipeline that Ethereum wallets use.
+    </p>
+
+    <section>
+        <h2>1. Overview</h2>
+        <p>
+            A wallet does not store one key. It stores a mnemonic phrase, and everything else is
+            computed from it: a seed, a tree of keys, a private key, a public key, and finally an
+            address. The whole pipeline is deterministic, so the same phrase always gives the same
+            addresses, and this is why the phrase must be kept secret.
+        </p>
+        <p>
+            <code>Mnemonic → BIP-39 → Seed → BIP-32 / BIP-44 → Private key → secp256k1 → Public key
+            → Keccak-256 → Ethereum address → EIP-55 → Checksummed address</code>
+        </p>
+    </section>
+
+    <section>
+        <h2>2. Task</h2>
+        <p>
+            Check the pipeline from a mnemonic phrase to an Ethereum address, and describe the role of
+            BIP-39, BIP-32, BIP-44, secp256k1, Keccak-256 and EIP-55. The page below runs each step in
+            the browser, so you can follow the intermediate values. The same steps are what software
+            wallets such as MetaMask or Rabby perform internally.
+        </p>
+    </section>
+
+    <section>
+        <h2>3. Historical context</h2>
+        <table>
+            <thead>
+                <tr><th>Year</th><th>Technology</th><th>Role in the pipeline</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1977</td><td>RSA</td><td>First widely known public-key cryptosystem.</td></tr>
+                <tr><td>2001</td><td>SHA-2 / SHA-512</td><td>Standardized hash family, published by NIST as a draft in 2001 and as FIPS 180-2 in 2002.</td></tr>
+                <tr><td>2012</td><td>BIP-32</td><td>Hierarchical deterministic (HD) key derivation.</td></tr>
+                <tr><td>2013</td><td>BIP-39</td><td>Mnemonic phrases that encode the seed.</td></tr>
+                <tr><td>2014</td><td>BIP-44</td><td>Standard derivation paths for multiple accounts.</td></tr>
+                <tr><td>2015</td><td>SHA-3 (Keccak)</td><td>Standardized by NIST as FIPS 202, based on the Keccak design.</td></tr>
+                <tr><td>2016</td><td>EIP-55</td><td>Mixed-case checksum for Ethereum addresses.</td></tr>
+            </tbody>
+        </table>
+        <p>
+            secp256k1 is older than most of these: it is a curve defined in the SEC 2 standard
+            (2000), and Bitcoin adopted it in 2009. Ethereum inherited it.
+        </p>
+
+        <h3>SHA-2 and Keccak / SHA-3 are not the same design</h3>
+        <p>
+            Both belong to the family of cryptographic hash functions, but they are built differently.
+            SHA-2 uses the Merkle–Damgård construction. Keccak uses the sponge construction, and it
+            won the NIST competition that produced SHA-3. Ethereum uses <strong>Keccak-256</strong>,
+            which is not the same as the standardized <strong>SHA3-256</strong>: the two differ in the
+            padding (domain separation) byte. The page below shows that the two functions give different
+            hashes for the same input.
+        </p>
+        <pre id="hashes" class="output"></pre>
+    </section>
+
+    <section>
+        <h2>4. Distinctions</h2>
+        <ul>
+            <li><strong>Key generation</strong> creates new randomness, here the 128 bits of entropy behind a mnemonic.
+                <strong>Key derivation</strong> computes new keys deterministically from an existing seed, so one phrase
+                gives an unlimited tree of accounts.</li>
+            <li><strong>Public-key cryptography</strong> links a private key <code>k</code> to a public key
+                <code>Q = kG</code> on secp256k1. Anyone can verify a signature with <code>Q</code>, but only
+                the holder of <code>k</code> can produce it.</li>
+            <li><strong>Hashing</strong> maps data of any length to a fixed-size digest. Here Keccak-256 maps
+                the 64-byte public key to a 32-byte digest, and the address keeps the last 20 bytes.</li>
+            <li><strong>Checksums</strong> detect mistakes. In BIP-39 the last word carries a checksum of the
+                entropy; in EIP-55 the case of the letters in the address is a checksum of the address.</li>
+            <li><strong>Encoding</strong> only changes the representation: mnemonic words, hexadecimal, and the
+                mixed case of EIP-55 carry no secret and add no security. EIP-55 is a special case, because the
+                case pattern is derived from a hash, so it carries information about errors.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>5. Interactive pipeline</h2>
+        <p>
+            The default phrase is a public test vector, widely used in documentation and tests. Its first
+            account, at the path above, is <code>0x9858EfFD232B4033E47d90003D41EC34EcaEda94</code>, and the
+            page checks this value. <strong>Never use this phrase, or any phrase you have seen on a web page,
+            with real funds:</strong> public phrases are monitored, and any funds sent to their addresses can
+            be taken almost immediately.
+        </p>
+        <p>
+            To test the pipeline on your own phrase, click "New random phrase". It is generated in your browser
+            and never sent anywhere. Keep it only for the test, and do not send funds to its addresses.
+        </p>
+
+        <div class="card">
+            <p><label>Mnemonic:<br>
+                <textarea id="mnemonic" rows="2" style="width:100%;font-family:inherit;"></textarea>
+            </label></p>
+            <p>
+                <label>Passphrase (optional): <input id="passphrase" type="password"></label>
+            </p>
+            <p>
+                <label>BIP-44 path: <input id="path" type="text" size="24"></label>
+            </p>
+            <p>
+                <button id="derive">Derive address</button>
+                <button id="new-mnemonic">New random phrase</button>
+            </p>
+            <p id="error" style="color: #a33;"></p>
+        </div>
+
+        <div id="pipeline"></div>
+    </section>
+
+    <section>
+        <h2>6. Checksum tester</h2>
+        <p>
+            Type an address and press "Check". Then press "Flip the case of each letter" to see how many
+            single-letter case changes EIP-55 catches. Digits cannot change case, so only letters are tested.
+        </p>
+        <div class="card">
+            <p><input id="check-input" type="text" size="50"></p>
+            <p>
+                <button id="check-btn">Check</button>
+                <button id="flip-btn">Flip the case of each letter</button>
+            </p>
+            <p id="check-output"></p>
+        </div>
+    </section>
+
+    <section>
+        <h2>7. Statistical properties</h2>
+        <p>
+            Press the button to run the tests. They use fixed inputs, so the results are reproducible.
+        </p>
+        <p><button id="run-stats">Run statistics</button></p>
+        <div id="stats"></div>
+    </section>
+
+    <section>
+        <h2>8. Discussion</h2>
+
+        <h3>Why the pipeline uses several techniques</h3>
+        <p>
+            Each step solves a different problem, and no single primitive does all of them well.
+        </p>
+        <ul>
+            <li><strong>BIP-39, BIP-32 and BIP-44</strong> handle key management. BIP-39 turns 128 bits of
+                entropy into words a person can write down, and PBKDF2 stretches them into a seed. BIP-32 derives
+                a tree of keys from that seed, so one backup covers every account. BIP-44 fixes the layout of the
+                tree (<code>m / purpose' / coin' / account' / change / index</code>; 60 is Ethereum's coin
+                type), so different wallets find the same accounts. The hardened levels (<code>'</code>) use the
+                private key of the parent, so a leaked child key cannot reveal its siblings.</li>
+            <li><strong>secp256k1</strong> provides the link between private and public key. It is a one-way
+                function that makes <code>Q = kG</code> easy to compute and <code>k</code> hard to recover, and it
+                supports digital signatures. The address alone does not reveal the public key until the first
+                transaction, which is an additional protection.</li>
+            <li><strong>Keccak-256</strong> compresses the 64-byte public key into a short identifier. Its job is
+                not to hide the key, but to produce a fixed-size, well-distributed value with no algebraic
+                structure. It is a hash, so it cannot be inverted, and it is applied after the curve step.</li>
+            <li><strong>EIP-55</strong> protects the address against typing errors. Ethereum addresses are 40 hex
+                characters without a checksum, so an error would send funds to a wrong but valid address. The
+                mixed case adds one bit of checking per letter in the address, with no change to the address itself.</li>
+        </ul>
+
+        <h3>Statistical properties</h3>
+        <p>
+            For a hash such as Keccak-256, the key property is avalanche: a one-bit change in the input should
+            flip about half of the output bits. The first test checks this, and the value is close to 50%.
+        </p>
+        <p>
+            For secp256k1, the output also looks random bit by bit, but this is not a hash property. Scalar
+            multiplication has algebraic structure: <code>(k + 1)G = kG + G</code>. Random-looking bits are
+            therefore not enough to show that a function is suitable for every purpose, as discussed in
+            HMWK 1.
+        </p>
+        <p>
+            The address statistics show that the hex digits are close to uniform (chi-square below the 5% critical
+            value), and that about half of the letters are uppercased by the checksum, as expected for a hash
+            nibble above 7. The checksum catches every single-letter case change in the address, because each
+            letter's case is fixed by the hash.
+        </p>
+
+        <h3>Comparison with wallet software</h3>
+        <p>
+            Software wallets such as MetaMask, Rabby, Exodus or Rainbow implement this same pipeline. To compare
+            them with the page, let a wallet generate a new phrase, note its first address for the default path,
+            then enter that phrase in the page and check that the address matches. This means typing the phrase
+            into a web page, so do it only with a throwaway phrase that will never hold funds, and delete the
+            wallet afterwards.
+        </p>
+    </section>
+
+    <footer>HMWK 2 - Statistics</footer>
+</main>
+
+<script type="module" src="hw2.js"></script>
+</body>
+</html>
