@@ -359,48 +359,6 @@ function gridTable(c, onCurve, subgroup, G, Q) {
 
 // The real-number curve y^2 = x^3 + 7, drawn with the origin at the bottom-left.
 // This is only for intuition: the homework computes on the same equation mod 17.
-function curveSvg() {
-  const NS = 'http://www.w3.org/2000/svg';
-  const W = 360, H = 320, pad = 34;
-  const xMin = -2, xMax = 3, yMin = -6, yMax = 6;
-  const sx = x => pad + ((x - xMin) / (xMax - xMin)) * (W - 2 * pad);
-  const sy = y => H - pad - ((y - yMin) / (yMax - yMin)) * (H - 2 * pad);
-
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('width', String(W));
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Real curve y squared equals x cubed plus 7');
-
-  const add = (tag, attrs, text) => {
-    const node = document.createElementNS(NS, tag);
-    Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, String(v)));
-    if (text !== undefined) node.textContent = text;
-    svg.appendChild(node);
-    return node;
-  };
-
-  // axes (origin at the bottom-left of the plotted region, which crosses at (0, 0))
-  add('line', { x1: sx(xMin), y1: sy(0), x2: sx(xMax), y2: sy(0), stroke: 'currentColor', 'stroke-width': 1 });
-  add('line', { x1: sx(0), y1: sy(yMin), x2: sx(0), y2: sy(yMax), stroke: 'currentColor', 'stroke-width': 1 });
-  add('text', { x: sx(xMax) - 4, y: sy(0) - 6, 'font-size': 12, 'text-anchor': 'end' }, 'x');
-  add('text', { x: sx(0) + 6, y: sy(yMax) + 10, 'font-size': 12 }, 'y');
-  add('text', { x: sx(0) - 6, y: sy(0) + 14, 'font-size': 12, 'text-anchor': 'end' }, '0');
-
-  // the two branches y = +sqrt(x^3 + 7) and y = -sqrt(x^3 + 7)
-  const upper = [], lower = [];
-  for (let x = xMin; x <= xMax + 1e-9; x += 0.01) {
-    const rhs = x ** 3 + 7;
-    if (rhs < 0) continue;
-    const y = Math.sqrt(rhs);
-    upper.push(`${sx(x).toFixed(1)},${sy(y).toFixed(1)}`);
-    lower.push(`${sx(x).toFixed(1)},${sy(-y).toFixed(1)}`);
-  }
-  add('polyline', { points: upper.join(' '), fill: 'none', stroke: '#547f98', 'stroke-width': 2 });
-  add('polyline', { points: lower.join(' '), fill: 'none', stroke: '#547f98', 'stroke-width': 2 });
-
-  return svg;
-}
 
 function buildInteractive() {
   const root = document.getElementById('interactive');
