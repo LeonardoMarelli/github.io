@@ -169,8 +169,7 @@
         <h2>7. Statistical exploration</h2>
         <p>
             The program repeats the calculation for many scalar values and reports several descriptive
-            statistics. These tests help explore the behaviour of the outputs; they do not by themselves prove
-            cryptographic security.
+            statistics. These tests help explore the behaviour of the outputs.
         </p>
         <h3>Coordinate distributions and frequencies</h3>
         <p>
@@ -241,11 +240,6 @@
             <code>0x04</code> prefix), and the last 20 bytes of the hash are used as the address. Therefore,
             the hash-related properties come from Keccak-256, not from elliptic-curve scalar multiplication.
         </p>
-        <p>
-            <strong>Important:</strong> this program is a teaching demonstration only. It does not implement
-            secp256k1, Ethereum key generation, or production cryptography, and it must never be used to generate
-            real keys.
-        </p>
     </section>
 
     <section>
@@ -258,12 +252,6 @@
             parameters so that public-key computation is efficient while recovering the private scalar remains
             computationally infeasible. Statistical tests can illustrate behaviour, but they cannot replace a
             cryptographic security argument.
-        </p>
-        <p>
-            <strong>Reference:</strong>
-            <a href="https://ethereum.org/developers/docs/accounts/" target="_blank" rel="noopener noreferrer">Ethereum account documentation</a>
-            ·
-            <a href="https://ethereum.github.io/yellowpaper/paper.pdf" target="_blank" rel="noopener noreferrer">Ethereum Yellow Paper</a>
         </p>
     </section>
 
