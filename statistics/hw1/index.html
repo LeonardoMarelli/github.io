@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HMWK 1 — Public-Key Cryptography</title>
+    <title>HW1</title>
     <link rel="stylesheet" href="../statistics.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
         <p>
             Public-key cryptography uses a mathematically related pair of keys. The <strong>private key</strong>
             is secret, while the <strong>public key</strong> can be shared openly. In elliptic-curve
-            cryptography, the public key is obtained by multiplying a public base point by the private scalar:
+            cryptography, the public key is obtained by multiplying a public base point by a private scalar:
         </p>
         <p><strong><code>Q = kG</code></strong></p>
         <ul>
@@ -35,10 +35,9 @@
             For example, <code>3G = G + G + G</code>.
         </p>
         <p>
-            The exercise uses <code>k = 6</code>. That is an integer written with one decimal digit, but its
-            binary representation is <code>110</code>, so its minimal binary length is <strong>3 bits</strong>.
+            The exercise uses <code>k = 6</code>.
             This tiny value is chosen only to make the calculations easy to follow. In Ethereum, a valid
-            secp256k1 private key is an integer in the range <code>1 ≤ k &lt; n</code>, normally represented
+            secp256k1 private key is an integer much larger than 6, normally represented
             using 32 bytes (256 bits).
         </p>
     </section>
@@ -46,12 +45,12 @@
     <section>
         <h2>2. The toy elliptic curve</h2>
         <p>
-            The main example uses the curve
+            Elliptic curves are mathematical objects defined by an equation with form: <code>y² = x³ + ax + b</code>. The main example uses the curve
             <code>y² = x³ + 7 (mod 17)</code>, with base point <code>G = (1, 5)</code>.
-            Calculations are performed modulo 17, so coordinate values are represented by integers from 0 to 16.
+            Calculations are performed mod 17, so coordinate values are represented by integers from 0 to 16.
         </p>
         <p>
-            “Modulo 17” means that results are reduced to their remainder modulo 17. For example,
+            “Mod 17” means that results are reduced to their remainder mod 17. For example,
             <code>20 mod 17 = 3</code> and <code>−3 mod 17 = 14</code>.
             A pair <code>(x, y)</code> is a point on the curve only if it satisfies the curve equation.
         </p>
