@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HMWK 2 - From Wallet Seed to Ethereum Address</title>
+    <title>HW2/title>
     <link rel="stylesheet" href="../statistics.css">
 </head>
 <body>
@@ -32,17 +32,7 @@
     </section>
 
     <section>
-        <h2>2. Task</h2>
-        <p>
-            Check the pipeline from a mnemonic phrase to an Ethereum address, and describe the role of
-            BIP-39, BIP-32, BIP-44, secp256k1, Keccak-256 and EIP-55. The page below runs each step in
-            the browser, so you can follow the intermediate values. The same steps are what software
-            wallets such as MetaMask or Rabby perform internally.
-        </p>
-    </section>
-
-    <section>
-        <h2>3. Historical context</h2>
+        <h2>2. Historical context</h2>
         <table>
             <thead>
                 <tr><th>Year</th><th>Technology</th><th>Role in the pipeline</th></tr>
@@ -75,26 +65,25 @@
     </section>
 
     <section>
-        <h2>4. Distinctions</h2>
+        <h2>3. Distinctions to understand</h2>
         <ul>
-            <li><strong>Key generation</strong> creates new randomness, here the 128 bits of entropy behind a mnemonic.
-                <strong>Key derivation</strong> computes new keys deterministically from an existing seed, so one phrase
+            <li><strong>Key generation</strong> creates new randomness, here the 128 bits of entropy behind a mnemonic.</li>
+            <li><strong>Key derivation</strong> computes new keys deterministically from an existing seed, so one phrase
                 gives an unlimited tree of accounts.</li>
-            <li><strong>Public-key cryptography</strong> links a private key <code>k</code> to a public key
-                <code>Q = kG</code> on secp256k1. Anyone can verify a signature with <code>Q</code>, but only
+            <li><strong>Public-key cryptography</strong> links a private key <code>k</code> to a public key. In the case of secp256k1, the public key is a point on the curve, and it is computed as <code>Q = kG</code>, where <code>k</code> is the private key.
+                Anyone can verify a signature with <code>Q</code>, but only
                 the holder of <code>k</code> can produce it.</li>
             <li><strong>Hashing</strong> maps data of any length to a fixed-size digest. Here Keccak-256 maps
                 the 64-byte public key to a 32-byte digest, and the address keeps the last 20 bytes.</li>
             <li><strong>Checksums</strong> detect mistakes. In BIP-39 the last word carries a checksum of the
                 entropy; in EIP-55 the case of the letters in the address is a checksum of the address.</li>
-            <li><strong>Encoding</strong> only changes the representation: mnemonic words, hexadecimal, and the
-                mixed case of EIP-55 carry no secret and add no security. EIP-55 is a special case, because the
-                case pattern is derived from a hash, so it carries information about errors.</li>
+            <li><strong>Encoding</strong> only changes the representation: mnemonic words, hexadecimal, etc. It
+            does not add any security or information.</li>
         </ul>
     </section>
 
     <section>
-        <h2>5. Interactive pipeline</h2>
+        <h2>4. Interactive pipeline</h2>
         <p>
             The default phrase is a public test vector, widely used in documentation and tests. Its first
             account, at the path above, is <code>0x9858EfFD232B4033E47d90003D41EC34EcaEda94</code>, and the
@@ -128,7 +117,7 @@
     </section>
 
     <section>
-        <h2>6. Checksum tester</h2>
+        <h2>5. Checksum tester</h2>
         <p>
             Type an address and press "Check". Then press "Flip the case of each letter" to see how many
             single-letter case changes EIP-55 catches. Digits cannot change case, so only letters are tested.
@@ -144,7 +133,7 @@
     </section>
 
     <section>
-        <h2>7. Statistical properties</h2>
+        <h2>6. Statistical properties</h2>
         <p>
             Press the button to run the tests. They use fixed inputs, so the results are reproducible.
         </p>
@@ -153,7 +142,7 @@
     </section>
 
     <section>
-        <h2>8. Discussion</h2>
+        <h2>7. Discussion</h2>
 
         <h3>Why the pipeline uses several techniques</h3>
         <p>
