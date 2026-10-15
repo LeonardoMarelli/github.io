@@ -202,8 +202,87 @@
         <div id="results"></div>
     </section>
 
+
+        <section>
+        <h2>8. Encryption and decryption with the toy curve</h2>
+        <p>
+            The scalar multiplication above is only half of public-key cryptography. The other half is using
+            a key pair to hide a message. The procedure below is the elliptic-curve version of ElGamal encryption,
+            the same idea that underlies ECIES.
+        </p>
+
+        <h3>The idea</h3>
+        <p>
+            Bob has a private key <code>d<sub>B</sub></code> and publishes the public key
+            <code>Q<sub>B</sub> = d<sub>B</sub>G</code>. Alice wants to send him a message encoded as a point
+            <code>M</code> on the curve. Only Bob can recover <code>M</code>, because only Bob knows <code>d<sub>B</sub></code>.
+        </p>
+
+        <h3>Encryption (Alice)</h3>
+        <ol>
+            <li>Pick a fresh random number <code>r</code> with <code>1 ≤ r &lt; n</code>. It is used for this message only.</li>
+            <li>Compute <code>C<sub>1</sub> = rG</code>. This point is sent to Bob.</li>
+            <li>Compute the shared secret <code>S = rQ<sub>B</sub></code>. Alice can do this because she knows <code>r</code> and <code>Q<sub>B</sub></code>.</li>
+            <li>Compute <code>C<sub>2</sub> = M + S</code>.</li>
+        </ol>
+        <p>The ciphertext is the pair <code>(C<sub>1</sub>, C<sub>2</sub>)</code>.</p>
+
+        <h3>Decryption (Bob)</h3>
+        <ol>
+            <li>Compute <code>S' = d<sub>B</sub>C<sub>1</sub></code>.</li>
+            <li>Compute <code>M = C<sub>2</sub> − S'</code>.</li>
+        </ol>
+        <p>
+            This works because <code>d<sub>B</sub>C<sub>1</sub> = d<sub>B</sub>(rG) = r(d<sub>B</sub>G) = rQ<sub>B</sub> = S</code>.
+            Bob obtains the same secret that Alice computed, without ever learning <code>r</code>, and subtracts it
+            from <code>C<sub>2</sub></code>.
+        </p>
+
+        <h3>Worked example on the toy curve</h3>
+        <p>Curve <code>y² = x³ + 7 (mod 17)</code>, base point <code>G = (1, 5)</code>, order <code>n = 9</code>.</p>
+        <table>
+            <thead>
+                <tr><th>Who</th><th>Step</th><th>Computation</th><th>Result</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Bob</td><td>Key pair</td><td><code>d<sub>B</sub> = 4</code>, <code>Q<sub>B</sub> = 4G</code></td><td><code>(12, 1)</code></td></tr>
+                <tr><td>Alice</td><td>Message point and random number</td><td><code>M = 7G</code>, <code>r = 2</code></td><td><code>M = (2, 7)</code></td></tr>
+                <tr><td>Alice</td><td><code>C<sub>1</sub></code></td><td><code>rG = 2G</code></td><td><code>(2, 10)</code></td></tr>
+                <tr><td>Alice</td><td>Shared secret</td><td><code>S = rQ<sub>B</sub> = 2 · 4G = 8G</code></td><td><code>(1, 12)</code></td></tr>
+                <tr><td>Alice</td><td><code>C<sub>2</sub></code></td><td><code>M + S = 7G + 8G = 15G = 6G</code></td><td><code>(5, 8)</code></td></tr>
+                <tr><td>Bob</td><td>Shared secret</td><td><code>S' = d<sub>B</sub>C<sub>1</sub> = 4 · 2G = 8G</code></td><td><code>(1, 12)</code>, same as <code>S</code></td></tr>
+                <tr><td>Bob</td><td>Recovered message</td><td><code>M = C<sub>2</sub> − S' = 6G − 8G = −2G = 7G</code></td><td><code>(2, 7)</code></td></tr>
+            </tbody>
+        </table>
+        <p>
+            The ciphertext sent is <code>((2, 10), (5, 8))</code>. Bob recovers <code>M = (2, 7)</code>, the message
+            Alice sent. The step <code>−2G = 7G</code> holds because <code>−P = (x, −y)</code>, so <code>−2G = (2, −10) = (2, 7)</code>,
+            which is the same as <code>7G</code> since <code>9G = O</code>.
+        </p>
+
+        <h3>What the toy version does not show</h3>
+        <ul>
+            <li>
+                An eavesdropper sees <code>C<sub>1</sub> = (2, 10)</code> and <code>C<sub>2</sub> = (5, 8)</code>.
+                To recover <code>M</code> they need <code>S = rQ<sub>B</sub></code>, which means solving the ECDLP for
+                <code>r</code> or for <code>d<sub>B</sub></code>. Here that takes at most 9 tries, because the order is 9.
+                On secp256k1 it is infeasible.
+            </li>
+            <li>
+                The message is itself a curve point, so only 17 messages are possible, and the scheme is not practical.
+                Real systems hash the shared secret to derive a symmetric key, encrypt the message with a symmetric cipher
+                such as AES, and add an authentication tag. This is the structure of ECIES.
+            </li>
+            <li>
+                The random number <code>r</code> must be fresh for every message. If Alice reuses <code>r</code> for two
+                messages, then <code>C<sub>2</sub><sup>(1)</sup> − C<sub>2</sub><sup>(2)</sup> = M<sub>1</sub> − M<sub>2</sub></code>,
+                so the difference between the messages is revealed. Reusing a nonce is a classic failure.
+            </li>
+        </ul>
+    </section>
+
     <section>
-        <h2>8. Scalar multiplication versus cryptographic hash functions</h2>
+        <h2>9. Scalar multiplication versus cryptographic hash functions</h2>
         <p>
             Both scalar multiplication and cryptographic hash functions are deterministic and efficient to
             compute, but they serve different purposes. A one-way function is intended to be easy to evaluate
@@ -227,7 +306,7 @@
     </section>
 
     <section>
-        <h2>9. Connection to Ethereum</h2>
+        <h2>10. Connection to Ethereum</h2>
         <p>
             Ethereum uses the <code>secp256k1</code> curve for conventional externally owned account keys.
             The core public-key step follows the same idea as this exercise: a private scalar <code>k</code>
@@ -243,7 +322,7 @@
     </section>
 
     <section>
-        <h2>10. Conclusion</h2>
+        <h2>11. Conclusion</h2>
         <p>
             This homework implements the mathematical path from a private scalar to a public point, checks the
             result using two multiplication methods, and explores the outputs through simple statistics. The
