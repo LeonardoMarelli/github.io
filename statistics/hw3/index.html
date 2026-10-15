@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMWK 3 - Caesar Cipher vs Elliptic-Curve Encryption</title>
+    <link rel="stylesheet" href="../statistics.css">
+</head>
+<body>
+<main>
+    <div class="breadcrumb"><a href="../index.html">Statistics</a> / Homework 3</div>
+
+    <h1>Caesar Cipher vs Elliptic-Curve Encryption</h1>
+    <p class="description">
+        Encrypt the same message with an old substitution cipher and with a modern elliptic-curve scheme,
+        then compare the statistics of the two ciphertexts.
+    </p>
+
+    <section>
+        <h2>1. What is the Caesar cipher?</h2>
+        <p>
+            The Caesar cipher is a <strong>substitution cipher</strong>: every letter of the message is replaced
+            by the letter a fixed number of places further along the alphabet. The number of places is the
+            <strong>key</strong>. With key 3, A becomes D, B becomes E, and so on, with the alphabet wrapping
+            around after Z. The word <code>HELLO</code> becomes <code>KHOOR</code>.
+        </p>
+        <p>
+            In formulas, with letters numbered A = 0 to Z = 25 and key <code>k</code>:
+        </p>
+        <p><strong><code>C = (P + k) mod 26</code></strong> (encryption), <strong><code>P = (C − k) mod 26</code></strong> (decryption)</p>
+        <p>
+            The cipher is named after Julius Caesar, who according to the historian Suetonius used a shift of three
+            for his private correspondence. Its main weaknesses are clear from the formula. There are only 25 useful
+            keys, so a computer, or a patient person, can try all of them. Moreover, the cipher does not change the
+            <em>frequency</em> of the letters: the most common letter of the plaintext is still the most common letter
+            of the ciphertext, just shifted. Arab scholars were using frequency analysis to break such ciphers by the
+            9th century.
+        </p>
+    </section>
+
+    <section>
+        <h2>2. Task</h2>
+        <p>
+            Encrypt a message with a Caesar cipher and with a modern elliptic-curve scheme. Study the statistical
+            difference between the two ciphertexts. Using the letter distribution of Italian or English, compare
+            the Caesar ciphertext with the reference distribution to find the key, decode the message, and then
+            try the same attack on the elliptic-curve ciphertext.
+        </p>
+    </section>
+
+    <section>
+        <h2>3. Letter statistics of the language</h2>
+        <p>
+            Letters do not occur equally often. In English, E is the most common letter (about 12.7%), while Z and Q
+            are rare (below 0.1%). The distribution is characteristic of each language, so it can be used as a
+            fingerprint. The reference values used on this page are:
+        </p>
+        <ul>
+            <li><strong>English:</strong> the Oxford University Mathematical Institute table.</li>
+            <li><strong>Italian:</strong> the sttmedia.com character-frequency table. Other tables differ by about a percent, so the values are approximate.
+                J, K, W, X and Y are not Italian letters, so they are set to a very small value.</li>
+        </ul>
+        <div id="reference"></div>
+    </section>
+
+    <section>
+        <h2>4. How the attack works</h2>
+        <p>
+            Shifting does not change the shape of the distribution, only its position. So the attack is:
+        </p>
+        <ol>
+            <li>Count the letters in the ciphertext.</li>
+            <li>For each of the 26 possible keys (including 0), shift the text back and compare its letter counts
+                with the reference distribution using the <strong>chi-square statistic</strong>:
+                <code>χ² = Σ (observed − expected)² / expected</code>, where <code>expected = total × reference frequency</code>.</li>
+            <li>The key with the <strong>smallest</strong> chi-square is the most likely one.</li>
+        </ol>
+        <p>
+            A small chi-square means the decoded letter counts match the language. The absolute value grows with the
+            length of the text, so the most useful test is to compare the candidates with each other. As a rough
+            guide, the 5% critical value for 25 degrees of freedom is 37.65.
+        </p>
+    </section>
+
+    <section>
+        <h2>5. Caesar cipher: encryption and attack</h2>
+        <p>
+            The plaintext below is an English paragraph of about 600 letters. Change the text or the key and press
+            "Encrypt". Then press "Analyse" to decode the ciphertext without knowing the key.
+        </p>
+        <div class="card">
+            <p><label>Plaintext:<br>
+                <textarea id="caesar-plain" rows="6" style="width:100%;font-family:inherit;"></textarea>
+            </label></p>
+            <p><label>Key (1 to 25): <input id="caesar-key" type="number" min="1" max="25"></label>
+                <button id="caesar-encrypt">Encrypt</button></p>
+            <p><strong>Ciphertext:</strong></p>
+            <pre id="caesar-cipher-out" class="output"></pre>
+        </div>
+
+        <div class="card">
+            <p><label>Ciphertext to analyse:<br>
+                <textarea id="caesar-cipher-in" rows="6" style="width:100%;font-family:inherit;"></textarea>
+            </label></p>
+            <p><label>Reference language:
+                <select id="caesar-lang">
+                    <option value="english">English</option>
+                    <option value="italian">Italian</option>
+                </select>
+            </label>
+            <button id="caesar-analyse">Analyse</button></p>
+        </div>
+        <div id="caesar-result"></div>
+    </section>
+
+    <section>
+        <h2>6. Modern elliptic-curve encryption</h2>
+        <p>
+            Elliptic-curve cryptography does not hide a message by shifting its letters. The scheme used here
+            is the standard <strong>ECIES</strong> pattern, built from components that are used in practice:
+        </p>
+        <ul>
+            <li><strong>ECDH on P-256:</strong> the sender and the recipient agree on a shared secret without sending it. The sender uses a fresh ephemeral key pair, so the secret changes for every message.</li>
+            <li><strong>HKDF-SHA-256:</strong> the shared secret is not used directly as a key. It is passed through a key-derivation function, which turns it into a uniform 256-bit AES key.</li>
+            <li><strong>AES-256-GCM:</strong> the message is encrypted with a symmetric cipher. GCM also adds an authentication tag, so any change to the ciphertext is detected during decryption.</li>
+        </ul>
+        <p>The sender transmits: the ephemeral public key, the nonce (IV), and the ciphertext with its tag.</p>
+        <p><strong>Encryption:</strong> ephemeral pair <code>(e, eG)</code>; shared secret <code>S = e·Q<sub>B</sub></code>; AES key <code>K = HKDF(S)</code>; ciphertext <code>AES-GCM<sub>K</sub>(message)</code>.</p>
+        <p><strong>Decryption:</strong> the recipient computes <code>S = d<sub>B</sub>·(eG)</code>, which equals <code>e·Q<sub>B</sub></code>, derives the same <code>K</code>, and decrypts. If the tag does not match, decryption fails.</p>
+        <p>
+            The curve here is P-256 rather than secp256k1, because the browser's WebCrypto API supports P-256 directly.
+            The security does not come from the shift or from the letters, but from the difficulty of the ECDLP and
+            from the symmetric cipher.
+        </p>
+    </section>
+
+    <section>
+        <h2>7. Elliptic-curve encryption: encryption, decryption and attack</h2>
+        <p>
+            A recipient key pair is generated in your browser when the page loads, and it is not saved anywhere.
+            The same plaintext is encrypted again with a fresh ephemeral key, so the ciphertext changes each time.
+        </p>
+        <div class="card">
+            <p><label>Plaintext:<br>
+                <textarea id="ecc-plain" rows="6" style="width:100%;font-family:inherit;"></textarea>
+            </label></p>
+            <p><button id="ecc-encrypt">Encrypt again</button>
+               <button id="ecc-decrypt">Decrypt</button></p>
+            <div id="ecc-out"></div>
+            <pre id="ecc-decrypt-out" class="output"></pre>
+        </div>
+
+        <h3>Attempting the same attack on the ciphertext</h3>
+        <p>
+            The frequency attack from section 4 needs letters that follow the language. Below, the attack is run on the
+            ciphertext itself (its base64 text). Because the bytes are indistinguishable from random values, no shift
+            gives a plausible letter distribution, and the chi-square values stay far above the language-like values.
+        </p>
+        <div id="ecc-stats"></div>
+    </section>
+
+    <section>
+        <h2>8. Statistical comparison</h2>
+        <p>
+            The table compares the two ciphertexts with the statistics they would have if they were what they claim to be.
+            A Caesar ciphertext keeps the shape of the language, so it is compared with the language reference. An ECC
+            ciphertext should look like uniform random bytes, so it is compared with a uniform distribution.
+        </p>
+        <div id="compare"></div>
+    </section>
+
+    <section>
+        <h2>9. Discussion</h2>
+
+        <h3>Why the Caesar cipher fails</h3>
+        <p>
+            The Caesar cipher only moves each letter to another position. The statistical fingerprint of the language
+            survives, so the most frequent letters of the ciphertext correspond to the most frequent letters of the
+            language. With only 25 keys and a recognizable distribution, the key is found in a few seconds, as the
+            Caesar section above shows. Its security does not depend on any hard problem, so it offers no protection
+            once the attacker sees a few hundred letters.
+        </p>
+
+        <h3>Why the elliptic-curve ciphertext looks random</h3>
+        <p>
+            A good encryption scheme should produce output that cannot be told apart from random data without the key.
+            The AES output is designed for this: the byte values are close to uniform, and the letter distribution
+            carries no information about the plaintext. The attack therefore has nothing to work on. The statistics confirm
+            this: the byte distribution is close to uniform, and the letter attack finds no plausible key.
+        </p>
+
+        <h3>What statistics can and cannot show</h3>
+        <p>
+            The statistical tests show that the Caesar ciphertext is broken by a simple method, and that the modern
+            ciphertext does not reveal its structure to that method. They do not prove that the scheme is secure.
+            The security of the elliptic-curve part depends on the difficulty of the ECDLP, which cannot be checked by
+            looking at the output, and on the correct use of the primitives: fresh ephemeral keys for every message,
+            authentication of the ciphertext, and no reuse of nonces. A scheme can pass every statistical test and still
+            be broken by a protocol mistake.
+        </p>
+
+        <h3>Practical lesson</h3>
+        <p>
+            The Caesar cipher illustrates the principle of frequency analysis. Modern encryption exists precisely to
+            remove the statistical structure of the plaintext, and the chi-square test is one of the simplest ways to see
+            the difference between the two.
+        </p>
+    </section>
+
+    <section>
+        <h2>10. Conclusion</h2>
+        <p>
+            The Caesar cipher was broken with a simple chi-square test against the letter distribution of the language.
+            The elliptic-curve ciphertext, produced with ECDH, HKDF and AES-GCM, shows no language structure and cannot be
+            attacked this way. The comparison shows that statistics are a good tool for detecting weak encryption, but
+            they are not a proof of strong encryption.
+        </p>
+    </section>
+
+    <footer>HMWK 3 - Statistics</footer>
+</main>
+
+<script type="module" src="hw3.js"></script>
+</body>
+</html>
